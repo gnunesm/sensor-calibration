@@ -1,7 +1,7 @@
 #include "Calibration.h"
 #define KDE_METHOD
 //#define CHI_SQUARE_TEST
-//#define _DEBUG_
+#define _DEBUG_
 
 namespace perls
 {
@@ -191,11 +191,11 @@ namespace perls
             }
             
             //generate K matrix
-            this->m_Calib.K[i][0] = focal_length*scale_x;
+            this->m_Calib.K[i][0] = 489.439360; //focal_length*scale_x;
             this->m_Calib.K[i][1] = 0; 
             this->m_Calib.K[i][2] = camera_center_X;
             this->m_Calib.K[i][3] = 0;
-            this->m_Calib.K[i][4] = focal_length*scale_y;
+            this->m_Calib.K[i][4] = 489.436800; //focal_length*scale_y;
             this->m_Calib.K[i][5] = camera_center_Y;
             this->m_Calib.K[i][6] = 0; this->m_Calib.K[i][7] = 0; this->m_Calib.K[i][8] = 1;
             
@@ -226,14 +226,14 @@ namespace perls
         int numPoints = 0;
         fscanf (fptr, "%d\n", &numPoints); 
 
-        double DIST_THRESH = 10000;
+        double DIST_THRESH = 100 ;
         //read all points
         PointCloud_t pointCloud; 
         while (!feof (fptr))
         {
             Point3d_t point;
             fscanf (fptr, "%f %f %f %d\n", &point.x, &point.y, &point.z, &point.refc);
-            double dist = point.x*point.x + point.y*point.y + point.z*point.z;
+            double dist = sqrt(point.x*point.x + point.y*point.y + point.z*point.z);
             point.range = dist/DIST_THRESH; 
             pointCloud.points.push_back (point);
             numPoints++;
@@ -267,14 +267,14 @@ namespace perls
             sprintf (imageName,"%s/%s%04d.%s", image_folder, image_base_name, imageIndex, image_type);	
             printf ("Loading file-: %s\n",imageName);
             
-            IplImage* iplimage = cvLoadImage (imageName, 0); //load image as grayscale.
+            IplImage* iplimage = cvLoadImage (imageName, 1); //load image as grayscale.
             if (iplimage == NULL)
             {
                printf ("Error: Cannot load Image: %s\n", imageName);
                return -1;
             }
             //gaussian smoothing of images
-            IplImage* out = cvCreateImage (cvGetSize(iplimage), IPL_DEPTH_8U, 1);
+            IplImage* out = cvCreateImage (cvGetSize(iplimage), IPL_DEPTH_8U, 3);
             cv::Mat outMat = cv::cvarrToMat(out);
             cv::Mat imageMat = cv::cvarrToMat(iplimage);
             cv::GaussianBlur (imageMat, outMat, cv::Size (3, 3), 0.75); 
@@ -456,10 +456,10 @@ namespace perls
                                     refc_sum = refc_sum + refc; 
                                     #ifdef _DEBUG_
                                       //Plot the 3D points on the image
-                                      if (point.z > -2.0)
+                                      if (point.z > -200.0)
                                       {
                                           CvPoint c0 = cvPoint (cvRound (u), cvRound (v));
-                                          cvCircle (debug_dest.image[j], c0, 2, CV_RGB(refc, 0, 0), -1, 4, 0); //-1, 8, 0);
+                                          cvCircle (debug_dest.image[j], c0, 2, CV_RGB(255 - 5*sqrt(point.x*point.x+point.y*point.y+point.z*point.z), 0, 0), -1, 4, 0); //-1, 8, 0);
                                       }
                                     #endif
                                 }
