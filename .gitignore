@@ -1,0 +1,13 @@
+*.txt
+
+*/
+
+LICENSE
+README
+
+!src/
+!config/
+
+config/iara_test.cfg
+config/master.cfg
+config/monocular-cam.cfg
