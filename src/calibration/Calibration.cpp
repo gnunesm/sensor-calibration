@@ -459,7 +459,7 @@ namespace perls
                                       if (point.z > -200.0)
                                       {
                                           CvPoint c0 = cvPoint (cvRound (u), cvRound (v));
-                                          cvCircle (debug_dest.image[j], c0, 2, CV_RGB(255 - 5*sqrt(point.x*point.x+point.y*point.y+point.z*point.z), 0, 0), -1, 4, 0); //-1, 8, 0);
+                                          cvCircle (debug_dest.image[j], c0, 2, CV_RGB(255-point.x/30*255, 0, 0), -1, 4, 0); //-1, 8, 0);
                                       }
                                     #endif
                                 }
