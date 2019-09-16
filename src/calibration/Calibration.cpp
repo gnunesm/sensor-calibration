@@ -226,14 +226,14 @@ namespace perls
         int numPoints = 0;
         fscanf (fptr, "%d\n", &numPoints); 
 
-        double DIST_THRESH = 100 ;
+        double DIST_THRESH = 10000;
         //read all points
         PointCloud_t pointCloud; 
         while (!feof (fptr))
         {
             Point3d_t point;
             fscanf (fptr, "%f %f %f %d\n", &point.x, &point.y, &point.z, &point.refc);
-            double dist = sqrt(point.x*point.x + point.y*point.y + point.z*point.z);
+            double dist = point.x*point.x + point.y*point.y + point.z*point.z;
             point.range = dist/DIST_THRESH; 
             pointCloud.points.push_back (point);
             numPoints++;
@@ -267,14 +267,22 @@ namespace perls
             sprintf (imageName,"%s/%s%04d.%s", image_folder, image_base_name, imageIndex, image_type);	
             printf ("Loading file-: %s\n",imageName);
             
-            IplImage* iplimage = cvLoadImage (imageName, 1); //load image as grayscale.
+            #ifdef _DEBUG_
+                IplImage* iplimage = cvLoadImage (imageName, 1);
+            #else
+                IplImage* iplimage = cvLoadImage (imageName, 0); //load image as grayscale.
+            #endif
             if (iplimage == NULL)
             {
                printf ("Error: Cannot load Image: %s\n", imageName);
                return -1;
             }
             //gaussian smoothing of images
-            IplImage* out = cvCreateImage (cvGetSize(iplimage), IPL_DEPTH_8U, 3);
+            #ifdef _DEBUG_
+                IplImage* out = cvCreateImage (cvGetSize(iplimage), IPL_DEPTH_8U, 3);
+            #else
+                IplImage* out = cvCreateImage (cvGetSize(iplimage), IPL_DEPTH_8U, 1);
+            #endif
             cv::Mat outMat = cv::cvarrToMat(out);
             cv::Mat imageMat = cv::cvarrToMat(iplimage);
             cv::GaussianBlur (imageMat, outMat, cv::Size (3, 3), 0.75); 
@@ -459,7 +467,7 @@ namespace perls
                                       if (point.z > -200.0)
                                       {
                                           CvPoint c0 = cvPoint (cvRound (u), cvRound (v));
-                                          cvCircle (debug_dest.image[j], c0, 2, CV_RGB(255-point.x/30*255, 0, 0), -1, 4, 0); //-1, 8, 0);
+                                          cvCircle (debug_dest.image[j], c0, 2, CV_RGB(255-255*point.x/10, 0, 0), -1, 4, 0); //-1, 8, 0);
                                       }
                                     #endif
                                 }
@@ -473,16 +481,16 @@ namespace perls
               for (int i = 0; i < this->m_NumCams; i++)
               {
                   //Create a window
-                  sprintf (window_name[i], "SCAN Image %d", i);
-                  cvNamedWindow (window_name[i], 1 );
+                  //sprintf (window_name[i], "SCAN Image %d", i);
+                  //cvNamedWindow (window_name[i], 1 );
                   //Display image with projected 3D points
-                  cvShowImage (window_name[i], debug_dest.image[i]);
+                  cvShowImage ("img", debug_dest.image[i]);
                   //Wait for user to press a key
                   cvWaitKey (0);
                   //Release the memory used for clone image
                   cvReleaseImage (&debug_dest.image[i]);
                   //Destroy the opencv window
-                  cvDestroyWindow (window_name[i]);
+                  //cvDestroyWindow (window_name[i]);
               }
             #endif
         } //for(int scan_index = 0; scan_index < numScans; scan_index++)
@@ -1064,6 +1072,7 @@ namespace perls
     
         }
         ssc_pose_set (x0_hl, xk);
+        cvWaitKey(-1);
         return index;
     }
 
